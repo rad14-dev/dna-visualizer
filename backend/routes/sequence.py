@@ -11,6 +11,7 @@ from models.schemas import (
     HealthResponse,
     NucleotideCounts,
     CodonInfo,
+    ORFInfo,
 )
 from services.ncbi_fetcher import fetch_sequence
 from services.bio_logic import process_sequence, get_full_codon_table
