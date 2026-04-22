@@ -1,0 +1,378 @@
+/* ─── Protein Viewer ─────────────────────────────────────────────── */
+
+.protein-section {
+  margin-bottom: var(--space-10);
+  animation: slideUp var(--transition-slow) ease forwards;
+  animation-delay: 200ms;
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+
+/* Amino acid chain display */
+.protein-chain {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 30px var(--space-5) var(--space-5);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.aa-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 32px;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  position: relative;
+  border: 1px solid transparent;
+}
+
+.aa-pill:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  z-index: 2;
+}
+
+.aa-pill.highlighted {
+  outline: 2px solid white;
+  transform: scale(1.15);
+  z-index: 3;
+}
+
+.aa-pill.animate {
+  animation: nucleotideCascade 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  opacity: 0;
+}
+
+/* Amino acid popup on hover */
+.aa-popup {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-4px);
+  background: var(--bg-elevated);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
+  min-width: 160px;
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-lg);
+}
+
+.aa-pill:hover .aa-popup {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-10px);
+}
+
+/* Flip popup for top row items so they don't get cut off */
+.aa-pill.tooltip-bottom .aa-popup {
+  bottom: auto;
+  top: 100%;
+  transform: translateX(-50%) translateY(4px);
+}
+
+.aa-pill.tooltip-bottom:hover .aa-popup {
+  transform: translateX(-50%) translateY(10px);
+}
+
+.aa-popup-name {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.aa-popup-detail {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+}
+
+.aa-popup-property {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  margin-top: 4px;
+  padding: 2px 6px;
+  border-radius: var(--radius-xs);
+  background: var(--bg-surface);
+}
+
+/* Property legend */
+.property-legend {
+  display: flex;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+}
+
+.legend-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-xs);
+  flex-shrink: 0;
+}
+
+/* ─── Step Indicator ─────────────────────────────────────────────── */
+
+.step-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin-bottom: var(--space-10);
+  animation: fadeIn var(--transition-normal) ease forwards;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  transition: all var(--transition-normal);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  color: var(--text-tertiary);
+}
+
+.step.active {
+  background: var(--accent-subtle);
+  border-color: var(--accent);
+  color: var(--accent-light);
+  animation: glowPulse 2s ease infinite;
+}
+
+.step.completed {
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.3);
+  color: var(--color-success);
+}
+
+.step-connector {
+  width: 40px;
+  height: 2px;
+  background: var(--border-subtle);
+  transition: background var(--transition-normal);
+}
+
+.step-connector.active {
+  background: linear-gradient(90deg, var(--color-success), var(--accent));
+}
+
+.step .step-icon {
+  font-size: var(--text-lg);
+}
+
+/* ─── Description Card ───────────────────────────────────────────── */
+
+.description-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-5) var(--space-6);
+  margin-bottom: var(--space-8);
+  animation: slideUp var(--transition-slow) ease forwards;
+}
+
+.description-label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: var(--space-1);
+}
+
+.description-text {
+  font-size: var(--text-base);
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .description-meta {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  .step {
+    padding: var(--space-2) var(--space-4);
+  }
+  .step span:not(.step-icon) {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .protein-chain {
+    padding: 25px var(--space-3) var(--space-3);
+  }
+  .aa-pill {
+    min-width: 32px;
+    height: 28px;
+    font-size: 12px;
+  }
+  .property-legend {
+    gap: var(--space-2);
+  }
+  .legend-item {
+    font-size: 10px;
+  }
+  .description-text {
+    font-size: 14px;
+  }
+}
+/* ─── Protein Fragments / ORFs ───────────────────────────────────── */
+.protein-fragments {
+  margin-top: var(--space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  animation: fadeIn var(--transition-slow) ease forwards;
+  animation-delay: 400ms;
+  opacity: 0;
+}
+
+.fragments-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.fragments-title {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.fragments-count {
+  background: var(--bg-hover);
+  color: var(--accent-light);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid var(--border-subtle);
+}
+
+.fragments-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-4);
+}
+
+.fragment-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4) var(--space-5);
+  transition: all var(--transition-normal);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  position: relative;
+  overflow: hidden;
+}
+
+.fragment-card:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.fragment-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--accent);
+  opacity: 0.6;
+}
+
+.fragment-card.incomplete::before {
+  background: var(--text-tertiary);
+}
+
+.fragment-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.fragment-label {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.fragment-range {
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+}
+
+.fragment-seq-container {
+  background: var(--bg-primary);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+}
+
+.fragment-sequence {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--accent-light);
+  word-break: break-all;
+  line-height: 1.4;
+  letter-spacing: 0.05em;
+}
+
+.fragment-stats {
+  display: flex;
+  gap: var(--space-4);
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.stat-item strong {
+  color: var(--text-primary);
+}
+
+@media (max-width: 640px) {
+  .fragments-list {
+    grid-template-columns: 1fr;
+  }
+}

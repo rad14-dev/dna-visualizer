@@ -1,0 +1,139 @@
+/* ─── Sequence Stats (Charts) ─────────────────────────────────────── */
+
+.stats-section {
+  margin-bottom: var(--space-10);
+  animation-delay: 300ms;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3 columns for DNA, RNA, and Protein */
+  gap: var(--space-8);
+  margin-top: var(--space-4);
+}
+
+.stats-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform var(--transition-normal);
+  min-height: 520px;
+}
+
+.protein-stats-card {
+  /* Remove full width */
+}
+
+.card-title {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: var(--space-2);
+  width: 100%;
+  text-align: center;
+}
+
+.chart-container {
+  width: 100%;
+  height: 420px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+/* Tooltip Styling override for Recharts */
+.chart-tooltip {
+  background: var(--bg-elevated) !important;
+  border: 1px solid var(--accent) !important;
+  border-radius: var(--radius-md) !important;
+  padding: var(--space-3) var(--space-4) !important;
+  box-shadow: var(--shadow-lg) !important;
+  pointer-events: none;
+}
+
+.tooltip-label {
+  color: var(--text-primary) !important;
+  font-weight: 700 !important;
+  font-size: var(--text-sm) !important;
+  margin-bottom: 2px !important;
+}
+
+.tooltip-value {
+  color: var(--text-secondary) !important;
+  font-size: var(--text-xs) !important;
+}
+
+.tooltip-value strong {
+  color: var(--accent-light) !important;
+}
+
+/* Custom Legend colors/styles */
+.recharts-default-legend {
+  padding-top: var(--space-6) !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important; /* Force 2 columns */
+  gap: 12px 20px !important;
+  width: 100% !important;
+  max-width: 500px !important;
+  margin: 0 auto !important;
+}
+
+.recharts-legend-item {
+  margin-right: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+}
+
+.recharts-legend-item-text {
+  color: var(--text-primary) !important;
+  font-size: 11px !important; /* Smaller font for better fit */
+  font-family: var(--font-sans) !important;
+  font-weight: 600 !important;
+  margin-left: 6px !important;
+  white-space: nowrap;
+}
+
+/* Protein stats specific layout */
+.protein-stats-card .chart-container {
+  display: flex;
+  justify-content: center;
+}
+
+/* Responsive */
+@media (max-width: 1280px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr); /* 2 columns for tablet */
+  }
+}
+
+@media (max-width: 640px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .chart-container {
+    height: 500px; /* Increase container height for legend space */
+  }
+
+  .recharts-legend-wrapper {
+    padding-top: 40px !important;
+  }
+  
+  .recharts-default-legend {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px 10px !important;
+  }
+}
+
+@media (max-width: 430px) {
+  .recharts-legend-wrapper {
+    padding-top: 50px !important; /* Even more distance for very small screens */
+  }
+}

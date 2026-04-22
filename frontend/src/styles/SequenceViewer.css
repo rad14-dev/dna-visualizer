@@ -1,0 +1,262 @@
+/* ─── Sequence Viewer (DNA/RNA Grid) ─────────────────────────────── */
+
+.sequence-section {
+  margin-bottom: var(--space-10);
+  animation: slideUp var(--transition-slow) ease forwards;
+  animation-delay: 100ms;
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-5);
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.section-title {
+  font-size: var(--text-xl);
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.section-title .icon {
+  font-size: var(--text-2xl);
+}
+
+.section-badge {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  padding: 2px var(--space-3);
+  border-radius: var(--radius-full);
+}
+
+/* Toggle between DNA / RNA */
+.view-toggle {
+  display: flex;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.toggle-btn {
+  padding: var(--space-2) var(--space-4);
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.toggle-btn.active {
+  background: var(--accent);
+  color: white;
+}
+
+.toggle-btn:hover:not(.active) {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+/* Nucleotide grid */
+.sequence-grid {
+  display: grid;
+  grid-template-columns: repeat(20, 1fr);
+  gap: 3px;
+  padding: var(--space-4);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.nucleotide-cell {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  border-radius: var(--radius-xs);
+  cursor: default;
+  transition: all var(--transition-fast);
+  position: relative;
+  user-select: none;
+}
+
+.nucleotide-cell:hover {
+  transform: scale(1.3);
+  z-index: 2;
+  box-shadow: var(--shadow-md);
+}
+
+.nucleotide-cell.codon-highlight {
+  outline: 2px solid white;
+  outline-offset: 1px;
+  transform: scale(1.15);
+  z-index: 1;
+}
+
+/* Nucleotide cascade animation */
+.nucleotide-cell.animate {
+  animation: nucleotideCascade 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  opacity: 0;
+}
+
+/* Nucleotide tooltip */
+.nucleotide-cell .cell-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-4px);
+  background: var(--bg-elevated);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-xs);
+  padding: 6px 10px;
+  font-size: 11px;
+  color: white;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: all var(--transition-fast);
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+
+.nucleotide-cell:hover .cell-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-8px);
+}
+
+/* Flip tooltip for top row items so they don't get cut off */
+.nucleotide-cell.tooltip-bottom .cell-tooltip {
+  bottom: auto;
+  top: 100%;
+  transform: translateX(-50%) translateY(4px);
+}
+
+.nucleotide-cell.tooltip-bottom:hover .cell-tooltip {
+  transform: translateX(-50%) translateY(8px);
+}
+
+/* Ensure the grid doesn't clip tooltips too aggressively */
+.sequence-grid {
+  display: grid;
+  grid-template-columns: repeat(20, 1fr);
+  gap: 3px;
+  padding: 30px var(--space-4) var(--space-4); /* Added top padding for tooltips */
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  max-height: 500px;
+  overflow-y: auto;
+  position: relative;
+}
+
+/* Responsive grid columns */
+@media (max-width: 1024px) {
+  .sequence-grid {
+    grid-template-columns: repeat(15, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .sequence-grid {
+    grid-template-columns: repeat(12, 1fr);
+    padding: 25px var(--space-3) var(--space-3);
+  }
+}
+
+@media (max-width: 480px) {
+  .sequence-grid {
+    grid-template-columns: repeat(10, 1fr);
+    gap: 2px;
+  }
+  .nucleotide-cell {
+    height: 32px;
+    font-size: 13px;
+  }
+  .view-tabs {
+    flex-direction: column;
+    padding: 4px;
+  }
+  .tab-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Row position labels */
+.row-label {
+  grid-column: 1 / -1;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  padding: var(--space-1) 0 0;
+  border-top: 1px solid var(--border-subtle);
+  margin-top: var(--space-1);
+}
+
+/* Nucleotide stats bar */
+.nuc-stats {
+  display: flex;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.nuc-stat {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.nuc-stat .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.nuc-stat .count {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* ─── Responsive ─────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .sequence-grid {
+    grid-template-columns: repeat(15, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .sequence-grid {
+    grid-template-columns: repeat(10, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .sequence-grid {
+    grid-template-columns: repeat(8, 1fr);
+    gap: 2px;
+  }
+}
