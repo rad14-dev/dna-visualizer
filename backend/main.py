@@ -1,22 +1,26 @@
-"""
-DNA Visualizer Backend — FastAPI entry point.
-
-Serves the REST API for DNA sequence fetching, transcription, and translation.
-Run with: uvicorn main:app --reload
-"""
-
+import os
+import sys
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from config import settings
-from routes.sequence import router as sequence_router
+# Tambahkan direktori backend ke path agar Vercel bisa menemukan modul internal
+sys.path.append(os.path.dirname(__file__))
+
+# Import modul internal setelah path diatur
+try:
+    from config import settings
+    from routes.sequence import router as sequence_router
+except ImportError:
+    # Fallback untuk struktur folder Vercel yang berbeda
+    from .config import settings
+    from .routes.sequence import router as sequence_router
 
 app = FastAPI(
     title="DNA Visualizer API",
     description="DNA to Protein visualization backend — fetch, transcribe, translate.",
     version="1.0.1",
-    docs_url="/docs",
-    redoc_url="/redoc",
+    docs_url="/api/docs",
+    redoc_url="/api/redoc",
 )
 
 # ─── CORS Middleware ───────────────────────────────────────────────
