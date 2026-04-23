@@ -41,7 +41,7 @@ async def process_accession(request: SequenceRequest):
     """
     try:
         # Step 1: Fetch from NCBI
-        record = fetch_sequence(request.accession_id)
+        record = fetch_sequence(request.accession_id, email=request.email)
 
         # Step 2: Process (transcribe + translate)
         result = process_sequence(str(record.seq))

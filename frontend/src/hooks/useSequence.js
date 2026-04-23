@@ -16,9 +16,14 @@ export function useSequence() {
   /**
    * Fetch and process a sequence from NCBI via the backend API.
    */
-  const fetchSequence = useCallback(async (accessionId) => {
+  const fetchSequence = useCallback(async (accessionId, email) => {
     if (!accessionId?.trim()) {
       setError('Masukkan Accession Number terlebih dahulu.');
+      return;
+    }
+    
+    if (!email?.trim()) {
+      setError('Masukkan Email Anda untuk keperluan NCBI.');
       return;
     }
 
@@ -31,7 +36,10 @@ export function useSequence() {
       const response = await fetch(`${API_BASE}/process`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ accession_id: accessionId.trim() }),
+        body: JSON.stringify({ 
+          accession_id: accessionId.trim(),
+          email: email.trim() 
+        }),
       });
 
       setActiveStep(2); // Processing

@@ -234,6 +234,7 @@ export default function App() {
               highlightedCodon={highlightedCodon}
               onCodonHover={setHighlightedCodon}
               codonOffset={pagedData.codonOffset}
+              accessionId={data.accession_id}
             />
 
             {/* Codon Table */}

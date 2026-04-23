@@ -14,7 +14,7 @@ from Bio.SeqRecord import SeqRecord
 from config import settings
 
 
-# Configure Entrez with credentials
+# Configure Entrez with credentials (default fallback)
 Entrez.email = settings.NCBI_EMAIL
 if settings.NCBI_API_KEY:
     Entrez.api_key = settings.NCBI_API_KEY
@@ -34,12 +34,13 @@ def _rate_limit() -> None:
     _last_request_time = time.time()
 
 
-def fetch_sequence(accession_id: str, max_retries: int = 3) -> SeqRecord:
+def fetch_sequence(accession_id: str, email: str = None, max_retries: int = 3) -> SeqRecord:
     """
     Fetch a sequence record from NCBI by accession number.
 
     Args:
         accession_id: NCBI accession number (e.g., NM_000558)
+        email: User email for NCBI Entrez (optional)
         max_retries: Number of retry attempts on failure
 
     Returns:
@@ -54,6 +55,10 @@ def fetch_sequence(accession_id: str, max_retries: int = 3) -> SeqRecord:
 
     accession_id = accession_id.strip()
     last_error = None
+
+    # Gunakan email dari parameter jika ada, jika tidak gunakan default dari settings
+    if email and email.strip():
+        Entrez.email = email.strip()
 
     for attempt in range(1, max_retries + 1):
         try:

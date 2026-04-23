@@ -57,6 +57,7 @@
 
 .input-field::placeholder {
   color: var(--text-tertiary);
+  font-family: var(--font-sans);
 }
 
 .input-field:focus {

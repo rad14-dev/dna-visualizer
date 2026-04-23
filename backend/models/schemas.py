@@ -13,6 +13,11 @@ class SequenceRequest(BaseModel):
         description="NCBI Accession Number (e.g., NM_000558)",
         examples=["NM_000558", "NM_001301717", "NC_000001.11"],
     )
+    email: str | None = Field(
+        None,
+        description="Email untuk NCBI Entrez",
+        examples=["user@example.com"],
+    )
 
 
 class NucleotideCounts(BaseModel):
