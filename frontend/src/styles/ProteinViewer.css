@@ -10,15 +10,14 @@
 
 /* Amino acid chain display */
 .protein-chain {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  padding: 30px var(--space-5) var(--space-5);
+  padding: 60px var(--space-5) var(--space-5);
   background: var(--bg-secondary);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   max-height: 400px;
   overflow-y: auto;
+  overflow-x: visible !important;
+  position: relative;
 }
 
 .aa-pill {
@@ -66,11 +65,43 @@
   border-radius: var(--radius-sm);
   padding: var(--space-3) var(--space-4);
   min-width: 160px;
-  z-index: 100;
+  z-index: 5000;
   pointer-events: none;
   opacity: 0;
   transition: all var(--transition-fast);
   box-shadow: var(--shadow-lg);
+}
+
+/* Horizontal shifting for Protein tooltips */
+.aa-pill.tooltip-left .aa-popup {
+  left: 0;
+  transform: translateX(0) translateY(-4px);
+}
+.aa-pill.tooltip-left:hover .aa-popup {
+  transform: translateX(0) translateY(-10px);
+}
+
+.aa-pill.tooltip-right .aa-popup {
+  left: auto;
+  right: 0;
+  transform: translateX(0) translateY(-4px);
+}
+.aa-pill.tooltip-right:hover .aa-popup {
+  transform: translateX(0) translateY(-10px);
+}
+
+.aa-pill.tooltip-left.tooltip-bottom .aa-popup {
+  transform: translateX(0) translateY(4px);
+}
+.aa-pill.tooltip-left.tooltip-bottom:hover .aa-popup {
+  transform: translateX(0) translateY(10px);
+}
+
+.aa-pill.tooltip-right.tooltip-bottom .aa-popup {
+  transform: translateX(0) translateY(4px);
+}
+.aa-pill.tooltip-right.tooltip-bottom:hover .aa-popup {
+  transform: translateX(0) translateY(10px);
 }
 
 .aa-pill:hover .aa-popup {

@@ -40,10 +40,13 @@ export default function ProteinViewer({
           const codon = codons?.[idx];
           const isHighlighted = highlightedCodon !== null && highlightedCodon === globalIdx;
 
+          const isLeftEdge = idx % 12 < 2; // Shift right if near left edge
+          const isRightEdge = idx % 12 > 9; // Shift left if near right edge
+
           return (
             <div
               key={globalIdx}
-              className={`aa-pill animate ${isHighlighted ? 'highlighted' : ''} ${idx < 12 ? 'tooltip-bottom' : ''}`}
+              className={`aa-pill animate ${isHighlighted ? 'highlighted' : ''} ${idx < 12 ? 'tooltip-bottom' : ''} ${isLeftEdge ? 'tooltip-left' : ''} ${isRightEdge ? 'tooltip-right' : ''}`}
               style={{
                 backgroundColor: `${data.color}20`,
                 color: data.color,

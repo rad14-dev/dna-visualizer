@@ -90,10 +90,13 @@ export default function SequenceViewer({
             const { color, label, bgLight } = getNucleotideColor(base);
             const isHighlighted = highlightedCodon !== null && codonIdx === highlightedCodon;
 
+            const isLeftEdge = currentIdx % 20 < 3;
+            const isRightEdge = currentIdx % 20 > 16;
+
             return (
               <div
                 key={globalIdx}
-                className={`nucleotide-cell animate ${isHighlighted ? 'codon-highlight' : ''} ${currentIdx < 20 ? 'tooltip-bottom' : ''}`}
+                className={`nucleotide-cell animate ${isHighlighted ? 'codon-highlight' : ''} ${currentIdx < 20 ? 'tooltip-bottom' : ''} ${isLeftEdge ? 'tooltip-left' : ''} ${isRightEdge ? 'tooltip-right' : ''}`}
                 style={{
                   backgroundColor: bgLight,
                   color: color,

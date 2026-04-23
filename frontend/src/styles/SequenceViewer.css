@@ -134,8 +134,8 @@
   pointer-events: none;
   opacity: 0;
   transition: all var(--transition-fast);
-  z-index: 100;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  z-index: 5000; /* Extremely high z-index */
+  box-shadow: 0 8px 24px rgba(0,0,0,0.6);
 }
 
 .nucleotide-cell:hover .cell-tooltip {
@@ -159,13 +159,46 @@
   display: grid;
   grid-template-columns: repeat(20, 1fr);
   gap: 3px;
-  padding: 30px var(--space-4) var(--space-4); /* Added top padding for tooltips */
+  padding: 60px var(--space-4) var(--space-4); /* Increased padding for tooltip safety */
   background: var(--bg-secondary);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   max-height: 500px;
   overflow-y: auto;
+  overflow-x: visible !important;
   position: relative;
+}
+
+/* Horizontal shifting for tooltips at grid edges */
+.nucleotide-cell.tooltip-left .cell-tooltip {
+  left: 0;
+  transform: translateX(0) translateY(-4px);
+}
+.nucleotide-cell.tooltip-left:hover .cell-tooltip {
+  transform: translateX(0) translateY(-8px);
+}
+
+.nucleotide-cell.tooltip-right .cell-tooltip {
+  left: auto;
+  right: 0;
+  transform: translateX(0) translateY(-4px);
+}
+.nucleotide-cell.tooltip-right:hover .cell-tooltip {
+  transform: translateX(0) translateY(-8px);
+}
+
+.nucleotide-cell.tooltip-left.tooltip-bottom .cell-tooltip {
+  transform: translateX(0) translateY(4px);
+}
+.nucleotide-cell.tooltip-left.tooltip-bottom:hover .cell-tooltip {
+  transform: translateX(0) translateY(8px);
+}
+
+.nucleotide-cell.tooltip-right.tooltip-bottom .cell-tooltip {
+  transform: translateX(0) translateY(4px);
+}
+.nucleotide-cell.tooltip-right.tooltip-bottom:hover .cell-tooltip {
+  transform: translateX(0) translateY(8px);
 }
 
 /* Responsive grid columns */
