@@ -1,19 +1,22 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import { getNucleotideColor } from '../utils/colorMap';
 import '../styles/SequenceViewer.css';
+import * as Tone from 'tone';
 
 const BASES_PER_ROW = 20;
 
+// Mapping nukleotida ke nada C-Mayor Pentatonic berdasarkan hidrogen bonds & RNA root
+const NOTE_MAP = {
+  'G': 'A4', // 3 H-bonds: Tinggi/Terang
+  'C': 'G4', // 3 H-bonds: Resonan
+  'A': 'E4', // 2 H-bonds: Menengah
+  'T': 'D4', // 2 H-bonds: Rendah
+  'U': 'C4'  // RNA root
+};
+
 /**
  * SequenceViewer — renders DNA or RNA sequence as a color-coded grid.
- *
- * Features:
- * - Toggle between DNA and RNA view
- * - Color-coded nucleotide cells
- * - Hover tooltip with position info
- * - Codon highlighting (groups of 3)
- * - Nucleotide frequency stats bar
- * - Staggered entrance animation
+ * Includes DNA/Protein Sonification (Tone.js).
  */
 export default function SequenceViewer({
   dnaSequence,
@@ -25,8 +28,97 @@ export default function SequenceViewer({
   highlightedCodon,
   onCodonHover,
   baseOffset = 0,
+  restrictionSites = [],
 }) {
   const sequence = activeView === 'dna' ? dnaSequence : rnaSequence;
+  
+  // Audio state
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [bpm, setBpm] = useState(120);
+  const [playingIndex, setPlayingIndex] = useState(-1);
+  const synthRef = useRef(null);
+  const sequenceRef = useRef(null);
+
+  // Initialize synth
+  const initAudio = async () => {
+    if (!synthRef.current) {
+      await Tone.start(); // Start audio context
+      
+      // PolySynth untuk karakter suara instrumen Xylophone (FM Synth)
+      const synth = new Tone.PolySynth(Tone.FMSynth, {
+        harmonicity: 3,
+        modulationIndex: 1.2,
+        oscillator: {
+          type: "sine"
+        },
+        envelope: {
+          attack: 0.01,
+          decay: 0.1,
+          sustain: 0,
+          release: 0.5
+        },
+        modulation: {
+          type: "square"
+        },
+        modulationEnvelope: {
+          attack: 0.01,
+          decay: 0.05,
+          sustain: 0,
+          release: 0.2
+        }
+      });
+      
+      // Efek Reverb kecil
+      const reverb = new Tone.Reverb({ decay: 1.5, wet: 0.3 }).toDestination();
+      synth.connect(reverb);
+      synthRef.current = synth;
+    }
+  };
+
+  const togglePlay = async () => {
+    if (!sequence) return;
+    
+    if (isPlaying) {
+      Tone.Transport.stop();
+      if (sequenceRef.current) {
+        sequenceRef.current.stop();
+      }
+      setIsPlaying(false);
+      setPlayingIndex(-1);
+      return;
+    }
+
+    await initAudio();
+    
+    // Create sequence of notes
+    const notes = sequence.split('').map((base, i) => ({
+      time: i, 
+      note: NOTE_MAP[base] || 'C4', 
+      idx: i 
+    }));
+
+    Tone.Transport.bpm.value = bpm;
+    
+    if (sequenceRef.current) {
+      sequenceRef.current.dispose();
+    }
+
+    sequenceRef.current = new Tone.Sequence((time, event) => {
+      // Mainkan nada
+      synthRef.current.triggerAttackRelease(event.note, "8n", time);
+      // Update visualizer tersinkronisasi (harus via Tone.Draw agar sync dgn audio thread)
+      Tone.Draw.schedule(() => {
+        setPlayingIndex(event.idx);
+        // Highlight codon corresponding to this base
+        const codonIdx = Math.floor((baseOffset + event.idx) / 3);
+        onCodonHover?.(codonIdx);
+      }, time);
+    }, notes, "8n");
+
+    sequenceRef.current.start(0);
+    Tone.Transport.start();
+    setIsPlaying(true);
+  };
 
   // Pre-compute row boundaries for position labels
   const rows = useMemo(() => {
@@ -59,9 +151,8 @@ export default function SequenceViewer({
   return (
     <section className="sequence-section" id="sequence-viewer">
       <div className="section-header">
-        <div className="section-title">
-          <span className="icon">🧬</span>
-          {activeView === 'dna' ? 'DNA' : 'RNA'} Sequence
+        <div className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <span><span className="icon">🧬</span>{activeView === 'dna' ? 'DNA' : 'RNA'} Sequence</span>
           <span className="section-badge">{fullLength} bp</span>
         </div>
 
@@ -81,6 +172,57 @@ export default function SequenceViewer({
         </div>
       </div>
 
+      {/* Audio Controls */}
+      <div style={{
+        background: 'var(--bg-surface)',
+        padding: '0.5rem 1rem',
+        borderRadius: '8px',
+        border: '1px solid var(--border-subtle)',
+        marginBottom: '1rem',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '1rem',
+        flexWrap: 'wrap'
+      }}>
+        <button 
+          onClick={togglePlay}
+          style={{
+            background: isPlaying ? 'var(--color-error)' : 'var(--accent)',
+            color: 'white',
+            border: 'none',
+            padding: '4px 12px',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontWeight: 'bold',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
+          }}
+        >
+          {isPlaying ? '⏸ Stop Sonification' : '▶ Play Sonification'}
+        </button>
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+          <label>BPM: {bpm}</label>
+          <input 
+            type="range" 
+            min="60" 
+            max="300" 
+            value={bpm} 
+            onChange={(e) => {
+              const newBpm = parseInt(e.target.value);
+              setBpm(newBpm);
+              if (isPlaying) Tone.Transport.bpm.value = newBpm;
+            }}
+            style={{ width: '100px', cursor: 'pointer' }}
+          />
+        </div>
+
+        <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', marginLeft: 'auto' }}>
+          Scale: C-Major Pentatonic (A: Mi, T/U: Re/Do, G: La, C: Sol) | Instrumen: Xylophone
+        </div>
+      </div>
+
       <div className="sequence-grid" id="sequence-grid">
         {rows.map((row, rowIdx) => (
           row.bases.map((base, colIdx) => {
@@ -88,7 +230,16 @@ export default function SequenceViewer({
             const globalIdx = baseOffset + currentIdx;
             const codonIdx = Math.floor(globalIdx / 3);
             const { color, label, bgLight } = getNucleotideColor(base);
-            const isHighlighted = highlightedCodon !== null && codonIdx === highlightedCodon;
+            
+            // Check highlight conditions
+            const isHighlightedCodon = highlightedCodon !== null && codonIdx === highlightedCodon;
+            const isPlayingNow = isPlaying && currentIdx === playingIndex;
+            
+            // Restriction enzyme site checking
+            // We find if the CURRENT globalIdx is a cut site
+            // Restriction sites are 1-based from backend, meaning cut is AFTER that position
+            // So if globalIdx + 1 matches a site position, we render the scissors on the right border
+            const cutSite = activeView === 'dna' ? restrictionSites.find(site => site.position === (globalIdx + 1)) : null;
 
             const isLeftEdge = currentIdx % 20 < 3;
             const isRightEdge = currentIdx % 20 > 16;
@@ -96,21 +247,56 @@ export default function SequenceViewer({
             return (
               <div
                 key={globalIdx}
-                className={`nucleotide-cell animate ${isHighlighted ? 'codon-highlight' : ''} ${currentIdx < 20 ? 'tooltip-bottom' : ''} ${isLeftEdge ? 'tooltip-left' : ''} ${isRightEdge ? 'tooltip-right' : ''}`}
+                className={`nucleotide-cell animate ${isHighlightedCodon ? 'codon-highlight' : ''} ${isPlayingNow ? 'playing-highlight' : ''} ${currentIdx < 20 ? 'tooltip-bottom' : ''} ${isLeftEdge ? 'tooltip-left' : ''} ${isRightEdge ? 'tooltip-right' : ''}`}
                 style={{
-                  backgroundColor: bgLight,
-                  color: color,
+                  backgroundColor: isPlayingNow ? '#eab308' : bgLight,
+                  color: isPlayingNow ? '#000' : color,
                   animationDelay: `${Math.min(currentIdx * 10, 500)}ms`,
                   border: `1px solid ${color}33`,
+                  transform: isPlayingNow ? 'scale(1.2)' : 'none',
+                  zIndex: isPlayingNow ? 10 : 1,
+                  transition: 'transform 0.1s ease-out, background-color 0.1s',
+                  position: 'relative' // for scissors absolute positioning
                 }}
                 onMouseEnter={() => onCodonHover?.(codonIdx)}
                 onMouseLeave={() => onCodonHover?.(null)}
                 title={`${label} — Position ${globalIdx + 1}`}
               >
                 {base}
+                
+                {/* Ikon Gunting jika ini adalah Restriction Site (hanya di DNA view) */}
+                {cutSite && (
+                  <div style={{
+                    position: 'absolute',
+                    right: '-8px', // cut is after this base
+                    top: '-12px',
+                    fontSize: '14px',
+                    zIndex: 20,
+                    color: '#ef4444',
+                    textShadow: '0 0 2px black'
+                  }} title={`Cut site: ${cutSite.enzyme} (${cutSite.pattern})`}>
+                    ✂️
+                  </div>
+                )}
+                
+                {/* Visual line separating the cut */}
+                {cutSite && (
+                  <div style={{
+                    position: 'absolute',
+                    right: '-1px',
+                    top: '-4px',
+                    bottom: '-4px',
+                    width: '2px',
+                    backgroundColor: '#ef4444',
+                    zIndex: 15,
+                    boxShadow: '0 0 4px #ef4444'
+                  }} />
+                )}
+
                 <span className="cell-tooltip">
                   {label} #{globalIdx + 1}
                   {activeView === 'rna' && ` · Codon ${codonIdx + 1}`}
+                  {cutSite && <><br/><strong style={{color: '#ef4444'}}>{cutSite.enzyme} Site</strong></>}
                 </span>
               </div>
             );

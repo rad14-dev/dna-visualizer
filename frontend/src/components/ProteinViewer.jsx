@@ -21,6 +21,7 @@ const PDB_MAPPING = {
  * - Property legend
  * - Staggered entrance animation
  * - 3D Protein Structure Viewer integration with controls
+ * - Functional signal highlighting
  */
 export default function ProteinViewer({
   proteinSequence,
@@ -30,6 +31,7 @@ export default function ProteinViewer({
   onCodonHover,
   codonOffset = 0,
   accessionId,
+  functionalSignals = [],
 }) {
   const viewerRef = useRef(null);
   const viewerInstance = useRef(null);
@@ -41,8 +43,6 @@ export default function ProteinViewer({
   useEffect(() => {
     if (accessionId) {
       const baseId = accessionId.split('.')[0];
-      console.log("Accession ID:", accessionId, "Base ID:", baseId);
-      
       if (PDB_MAPPING[baseId]) {
         setPdbId(PDB_MAPPING[baseId]);
       } else if (PDB_MAPPING[accessionId]) {
@@ -64,8 +64,6 @@ export default function ProteinViewer({
   // 2. Menginisialisasi 3Dmol viewer
   useEffect(() => {
     if (!pdbId || !viewerRef.current) return;
-
-    console.log("Memuat 3D Viewer untuk PDB ID:", pdbId);
 
     // Bersihkan kontainer jika sebelumnya sudah ada elemen
     viewerRef.current.innerHTML = '';
@@ -122,14 +120,55 @@ export default function ProteinViewer({
 
   const aminoAcids = proteinSequence.split('');
 
+  // Helper untuk mengecek apakah index ini bagian dari sinyal fungsional
+  // Karena sekarang signals dipetakan ke orfs, ini digunakan jika ingin highlight sequence utama
+  const getSignalForIndex = (idx) => {
+    // Note: functionalSignals uses 1-based indexing, map to 0-based
+    return functionalSignals.find(s => idx >= (s.start - 1) && idx < s.end);
+  };
+
+  const getSignalColor = (type) => {
+    switch(type) {
+      case 'Signal Peptide': return 'rgba(234, 179, 8, 0.4)'; // Yellow
+      case 'Transit Peptide': return 'rgba(16, 185, 129, 0.4)'; // Green
+      case 'Import to Nucleus': return 'rgba(59, 130, 246, 0.4)'; // Blue (NLS)
+      case 'Export from Nucleus': return 'rgba(239, 68, 68, 0.4)'; // Red (NES)
+      default: return 'rgba(168, 85, 247, 0.4)'; // Purple
+    }
+  };
+
   return (
     <section className="protein-section" id="protein-viewer">
-      <div className="section-header">
+      <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
         <div className="section-title">
           <span className="icon">🔬</span>
           Protein Sequence
           <span className="section-badge">{aminoAcids.length} aa</span>
         </div>
+
+        {functionalSignals.length > 0 && (
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            {functionalSignals.map((signal, i) => (
+              <span key={i} style={{ 
+                fontSize: '0.75rem', 
+                backgroundColor: getSignalColor(signal.type), 
+                padding: '4px 12px', 
+                borderRadius: '999px',
+                border: '1px solid rgba(255,255,255,0.2)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}>
+                <span style={{ fontSize: '10px' }}>
+                  {signal.type === 'Import to Nucleus' ? '📥' : 
+                   signal.type === 'Export from Nucleus' ? '📤' : 
+                   signal.type === 'Signal Peptide' ? '🚚' : '🔄'}
+                </span>
+                Loc: {signal.type}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="protein-chain" id="protein-chain">
@@ -142,14 +181,19 @@ export default function ProteinViewer({
           const isLeftEdge = idx % 12 < 2; // Shift right if near left edge
           const isRightEdge = idx % 12 > 9; // Shift left if near right edge
 
+          const activeSignal = getSignalForIndex(idx);
+          const signalColor = activeSignal ? getSignalColor(activeSignal.type) : `${data.color}20`;
+
           return (
             <div
               key={globalIdx}
               className={`aa-pill animate ${isHighlighted ? 'highlighted' : ''} ${idx < 12 ? 'tooltip-bottom' : ''} ${isLeftEdge ? 'tooltip-left' : ''} ${isRightEdge ? 'tooltip-right' : ''}`}
               style={{
-                backgroundColor: `${data.color}20`,
+                backgroundColor: signalColor,
                 color: data.color,
-                borderColor: `${data.color}40`,
+                borderColor: activeSignal ? data.color : `${data.color}40`,
+                borderWidth: activeSignal ? '2px' : '1px',
+                borderStyle: activeSignal ? 'dashed' : 'solid',
                 animationDelay: `${Math.min(idx * 50, 1000)}ms`,
               }}
               onMouseEnter={() => onCodonHover?.(globalIdx)}
@@ -169,6 +213,21 @@ export default function ProteinViewer({
                   {PROPERTY_LABELS[data.property]?.icon}{' '}
                   {PROPERTY_LABELS[data.property]?.label || data.property}
                 </div>
+                {activeSignal && (
+                  <div style={{ 
+                    marginTop: '6px', 
+                    paddingTop: '6px', 
+                    borderTop: '1px solid rgba(255,255,255,0.1)',
+                    fontSize: '10px',
+                    color: 'white',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '2px'
+                  }}>
+                    <strong style={{ color: '#818cf8' }}>{activeSignal.type}</strong>
+                    <span>{activeSignal.description}</span>
+                  </div>
+                )}
               </div>
             </div>
           );
@@ -266,16 +325,28 @@ export default function ProteinViewer({
                 className={`fragment-card ${!orf.is_complete ? 'incomplete' : ''}`}
                 id={`fragment-${idx + 1}`}
               >
-                <div className="fragment-info">
+                <div className="fragment-info" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                   <span className="fragment-label">{orf.label}</span>
                   <span className="fragment-range">Pos: {orf.start_index} - {orf.stop_index}</span>
                 </div>
                 
+                {/* 
+                  NOTE: Bagian sinyal fungsional pada fragment list telah dihapus/ditarik kembali sesuai permintaan.
+                */}
+                
                 <div className="fragment-seq-container">
-                  <div className="fragment-sequence">{orf.sequence}</div>
+                  <div className="fragment-sequence" style={{ 
+                    fontFamily: 'var(--font-mono)', 
+                    fontSize: 'var(--text-xs)', 
+                    color: 'var(--accent-light)', 
+                    wordBreak: 'break-all',
+                    lineHeight: '1.4'
+                  }}>
+                    {orf.sequence}
+                  </div>
                 </div>
 
-                <div className="fragment-stats">
+                <div className="fragment-stats" style={{ marginTop: '8px' }}>
                   <span className="stat-item">Length: <strong>{orf.length} aa</strong></span>
                   <span className="stat-item">Status: <strong>{orf.is_complete ? 'Complete (M → *)' : 'Incomplete'}</strong></span>
                 </div>

@@ -5,11 +5,13 @@ Core biology functions:
 - Transcription: DNA → RNA (T → U)
 - Translation: RNA → Protein (codons → amino acids)
 - Nucleotide counting and codon parsing
+- Protein Quality & Allergen Analysis
+- Restriction Enzyme Analysis
 """
 
 from Bio.Seq import Seq
 from Bio.Data.CodonTable import standard_dna_table
-
+from Bio import Restriction
 
 # ─── Amino Acid Full Names ─────────────────────────────────────────
 AMINO_ACID_NAMES: dict[str, str] = {
@@ -36,6 +38,36 @@ AMINO_ACID_NAMES: dict[str, str] = {
     "*": "Stop",
 }
 
+# ─── Reference Standards & Allergens ───────────────────────────────
+# FAO/WHO 2011 Essential Amino Acid requirements for older child/adult (mg/g protein)
+# We use this to identify limiting amino acids roughly.
+FAO_WHO_REQ_MG_PER_G = {
+    "H": 16, # Histidine
+    "I": 30, # Isoleucine
+    "L": 61, # Leucine
+    "K": 48, # Lysine
+    "M": 23, # Methionine + Cysteine (SAA)
+    "C": 0,  # Included in Methionine
+    "F": 41, # Phenylalanine + Tyrosine (AAA)
+    "Y": 0,  # Included in Phenylalanine
+    "T": 25, # Threonine
+    "W": 6.6,# Tryptophan
+    "V": 40, # Valine
+}
+
+# Simple database of some known allergen epitopes (string matching)
+# These are highly simplified examples for demonstration purposes
+ALLERGEN_EPITOPES = {
+    "Peanut (Ara h 1)": "QQEQQ",
+    "Peanut (Ara h 2)": "DPYSPS",
+    "Gluten (Gliadin)": "PQQPFPQQ",
+    "Soy (Gly m 4)": "VEEGL",
+    "Milk (Casein)": "VAPFPE",
+    "Egg (Ovalbumin)": "EMPSEE"
+}
+
+# Standard Restriction Enzymes to map
+COMMON_ENZYMES = ["EcoRI", "BamHI", "HindIII", "TaqI", "NotI", "XhoI", "SmaI"]
 
 # ─── Standard Codon Table (RNA codons → amino acid) ────────────────
 CODON_TABLE: dict[str, dict] = {}
@@ -78,12 +110,6 @@ def validate_rna_sequence(sequence: str) -> bool:
 def transcribe(dna_seq: Seq) -> Seq:
     """
     Transcribe DNA to RNA (replace T with U).
-
-    Args:
-        dna_seq: Biopython Seq object of DNA
-
-    Returns:
-        Biopython Seq object of RNA
     """
     return dna_seq.transcribe()
 
@@ -91,15 +117,7 @@ def transcribe(dna_seq: Seq) -> Seq:
 def translate(rna_seq: Seq, to_stop: bool = False) -> Seq:
     """
     Translate RNA to protein (amino acid chain).
-
-    Args:
-        rna_seq: Biopython Seq object of RNA
-        to_stop: If True, stop at first stop codon
-
-    Returns:
-        Biopython Seq object of protein sequence
     """
-    # Back-transcribe RNA to DNA for Biopython's translate
     dna_from_rna = rna_seq.back_transcribe()
     return dna_from_rna.translate(to_stop=to_stop)
 
@@ -107,12 +125,6 @@ def translate(rna_seq: Seq, to_stop: bool = False) -> Seq:
 def count_nucleotides(sequence: str) -> dict[str, int]:
     """
     Count frequency of each nucleotide in a sequence.
-
-    Args:
-        sequence: DNA or RNA sequence string
-
-    Returns:
-        Dictionary with nucleotide counts
     """
     seq_upper = sequence.upper()
     return {
@@ -127,12 +139,6 @@ def count_nucleotides(sequence: str) -> dict[str, int]:
 def get_codons(rna_sequence: str) -> list[dict]:
     """
     Split RNA sequence into codons (triplets) with amino acid mapping.
-
-    Args:
-        rna_sequence: RNA sequence string
-
-    Returns:
-        List of codon info dictionaries with position, codon, and amino acid
     """
     codons = []
     seq = rna_sequence.upper()
@@ -167,11 +173,9 @@ def find_orfs(protein_seq: str) -> list[dict]:
     while i < n:
         if seq[i] == 'M':
             start_idx = i
-            # Search for the next stop codon
             stop_idx = seq.find('*', start_idx)
             
             if stop_idx != -1:
-                # Found a complete ORF (Start to Stop)
                 sequence = seq[start_idx:stop_idx]
                 orfs.append({
                     "start_index": start_idx + 1,
@@ -183,7 +187,6 @@ def find_orfs(protein_seq: str) -> list[dict]:
                 })
                 i = stop_idx + 1
             else:
-                # Start but no Stop found before end of sequence
                 sequence = seq[start_idx:]
                 orfs.append({
                     "start_index": start_idx + 1,
@@ -199,23 +202,119 @@ def find_orfs(protein_seq: str) -> list[dict]:
             
     return orfs
 
+def analyze_protein_quality(orf_sequence: str) -> dict:
+    """
+    Analyze an ORF sequence for protein quality (limiting amino acids)
+    and check for known allergen epitopes.
+    """
+    aa_counts = {}
+    for aa in orf_sequence:
+        aa_counts[aa] = aa_counts.get(aa, 0) + 1
+        
+    total_aa = len(orf_sequence)
+    limiting_aas = []
+    allergens = []
+    
+    if total_aa > 0:
+        # Calculate roughly mg of amino acid per g of protein
+        # Average MW of an amino acid is ~110 Da.
+        # This is a very rough approximation for educational purposes.
+        for aa, required_mg in FAO_WHO_REQ_MG_PER_G.items():
+            if required_mg > 0:
+                count = aa_counts.get(aa, 0)
+                # If Methionine or Phenylalanine, add their pairs
+                if aa == "M": count += aa_counts.get("C", 0)
+                if aa == "F": count += aa_counts.get("Y", 0)
+                
+                # Approx mg/g = (count * 110) / (total_aa * 110) * 1000 = (count / total_aa) * 1000
+                actual_mg = (count / total_aa) * 1000
+                
+                if actual_mg < required_mg:
+                    limiting_aas.append(AMINO_ACID_NAMES.get(aa, aa))
+        
+        # Scan for allergens
+        for allergen_name, epitope in ALLERGEN_EPITOPES.items():
+            start = orf_sequence.find(epitope)
+            if start != -1:
+                allergens.append({
+                    "allergen_name": allergen_name,
+                    "matched_sequence": epitope,
+                    "start_index": start + 1,
+                    "end_index": start + len(epitope)
+                })
+                
+    return {
+        "is_complete": True, # Usually calculated elsewhere
+        "length": total_aa,
+        "amino_acid_counts": aa_counts,
+        "limiting_amino_acids": limiting_aas,
+        "allergens_found": allergens
+    }
+
+def analyze_restriction_sites(dna_seq: Seq) -> dict:
+    """
+    Map restriction enzyme cut sites and calculate fragment sizes.
+    """
+    # Create an enzyme batch from our common list
+    rb = Restriction.RestrictionBatch(COMMON_ENZYMES)
+    
+    # Perform restriction analysis
+    analysis = rb.search(dna_seq)
+    
+    sites = []
+    all_cut_positions = [0] # Start of sequence
+    
+    for enzyme_name, positions in analysis.items():
+        if positions:
+            # Biopython returns positions 1-based, where cut occurs after the position
+            # Use getattr on the Restriction module to get the enzyme class
+            # Instead of str(enzyme_name), we use the actual class name which is just enzyme_name.
+            # In Biopython, enzymes are classes dynamically created in the Restriction module.
+            try:
+                # enzyme_name is typically a string-like object (a restriction type)
+                name_str = str(enzyme_name)
+                enzyme_class = getattr(Restriction, name_str)
+                pattern = enzyme_class.site
+                
+                for pos in positions:
+                    sites.append({
+                        "enzyme": name_str,
+                        "position": pos,
+                        "pattern": pattern
+                    })
+                    all_cut_positions.append(pos)
+            except AttributeError:
+                pass
+                
+    all_cut_positions.append(len(dna_seq)) # End of sequence
+    all_cut_positions.sort()
+    
+    # Calculate fragment sizes
+    fragments = []
+    for i in range(len(all_cut_positions) - 1):
+        frag_size = all_cut_positions[i+1] - all_cut_positions[i]
+        if frag_size > 0:
+            fragments.append(frag_size)
+            
+    # Sort fragments by size descending (like in a gel)
+    fragments.sort(reverse=True)
+            
+    return {
+        "sites": sites,
+        "fragments": fragments
+    }
 
 def process_sequence(dna_sequence: str) -> dict:
     """
     Full processing pipeline: DNA → RNA → Protein with metadata.
-
-    Args:
-        dna_sequence: Raw DNA sequence string
-
-    Returns:
-        Dictionary with all processed data
     """
+    # Create Seq object explicitly using the modern Biopython syntax
     dna_seq = Seq(dna_sequence.upper())
 
     # Transcription
     rna_seq = transcribe(dna_seq)
 
-    # Translation (full, including stop codons as *)
+    # Translation
     protein_seq = translate(rna_seq, to_stop=False)
 
     # Nucleotide counts
@@ -232,7 +331,16 @@ def process_sequence(dna_sequence: str) -> dict:
 
     # ORF detection
     orfs = find_orfs(str(protein_seq))
-    print(f"DEBUG: Found {len(orfs)} ORFs")
+    
+    # Protein Quality Analysis for each ORF
+    quality_data = {}
+    for orf in orfs:
+        quality = analyze_protein_quality(orf["sequence"])
+        quality["is_complete"] = orf["is_complete"]
+        quality_data[orf["label"]] = quality
+        
+    # Restriction Enzyme Analysis
+    restriction_data = analyze_restriction_sites(dna_seq)
 
     return {
         "dna_sequence": str(dna_seq),
@@ -255,6 +363,8 @@ def process_sequence(dna_sequence: str) -> dict:
         "amino_acid_counts": aa_counts,
         "codons": codons,
         "orfs": orfs,
+        "protein_quality": quality_data,
+        "restriction_analysis": restriction_data
     }
 
 

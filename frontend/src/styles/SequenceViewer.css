@@ -112,6 +112,13 @@
   z-index: 1;
 }
 
+.nucleotide-cell.playing-highlight {
+  outline: 2px solid #eab308;
+  outline-offset: 2px;
+  box-shadow: 0 0 10px #eab308;
+  z-index: 10;
+}
+
 /* Nucleotide cascade animation */
 .nucleotide-cell.animate {
   animation: nucleotideCascade 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;

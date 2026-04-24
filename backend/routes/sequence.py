@@ -12,9 +12,15 @@ from models.schemas import (
     NucleotideCounts,
     CodonInfo,
     ORFInfo,
+    QualityInfo,
+    AllergenMatch,
+    FunctionalSignal,
+    RestrictionAnalysis,
+    RestrictionSite,
 )
 from services.ncbi_fetcher import fetch_sequence
 from services.bio_logic import process_sequence, get_full_codon_table
+from services.uniprot_api import fetch_uniprot_features, fallback_signal_detection
 
 router = APIRouter(prefix="/api", tags=["sequence"])
 
@@ -45,8 +51,15 @@ async def process_accession(request: SequenceRequest):
 
         # Step 2: Process (transcribe + translate)
         result = process_sequence(str(record.seq))
+        
+        # Step 3: Fetch functional signals from UniProt
+        # Fitur ini ditarik sementara
+        signals = []
 
-        # Step 3: Build response
+        for orf in result["orfs"]:
+            orf["signals"] = []
+
+        # Step 4: Build response
         return SequenceResponse(
             accession_id=request.accession_id,
             description=record.description,
@@ -60,6 +73,15 @@ async def process_accession(request: SequenceRequest):
             amino_acid_counts=result["amino_acid_counts"],
             codons=[CodonInfo(**c) for c in result["codons"]],
             orfs=[ORFInfo(**o) for o in result["orfs"]],
+            protein_quality={
+                label: QualityInfo(**quality)
+                for label, quality in result["protein_quality"].items()
+            },
+            functional_signals=[FunctionalSignal(**s) for s in signals],
+            restriction_analysis=RestrictionAnalysis(
+                sites=[RestrictionSite(**site) for site in result["restriction_analysis"]["sites"]],
+                fragments=result["restriction_analysis"]["fragments"]
+            ) if result.get("restriction_analysis") else None
         )
 
     except ValueError as e:

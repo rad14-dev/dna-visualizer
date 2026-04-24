@@ -4,6 +4,8 @@ import InputForm from './components/InputForm';
 import StepIndicator from './components/StepIndicator';
 import SequenceViewer from './components/SequenceViewer';
 import ProteinViewer from './components/ProteinViewer';
+import ProteinQuality from './components/ProteinQuality';
+import VirtualGel from './components/VirtualGel';
 import CodonTable from './components/CodonTable';
 import SequenceStats from './components/SequenceStats';
 
@@ -224,6 +226,7 @@ export default function App() {
               highlightedCodon={highlightedCodon}
               onCodonHover={setHighlightedCodon}
               baseOffset={pagedData.baseOffset}
+              restrictionSites={data.restriction_analysis?.sites}
             />
 
             {/* Protein Viewer */}
@@ -235,6 +238,13 @@ export default function App() {
               onCodonHover={setHighlightedCodon}
               codonOffset={pagedData.codonOffset}
               accessionId={data.accession_id}
+              functionalSignals={data.functional_signals}
+            />
+
+            {/* Protein Quality Analysis */}
+            <ProteinQuality
+              orfs={data.orfs}
+              proteinQuality={data.protein_quality}
             />
 
             {/* Codon Table */}
@@ -242,6 +252,11 @@ export default function App() {
               codons={codonTableData}
               sequenceCodons={data.codons}
             />
+            
+            {/* Virtual Gel Electrophoresis (Moved to bottom) */}
+            {data.restriction_analysis && (
+              <VirtualGel fragments={data.restriction_analysis.fragments} />
+            )}
           </>
         )}
 

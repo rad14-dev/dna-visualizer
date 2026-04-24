@@ -11,7 +11,7 @@ load_dotenv()
 class Settings:
     """Application settings loaded from environment variables."""
 
-    NCBI_EMAIL: str = os.getenv("NCBI_EMAIL", "")
+    NCBI_EMAIL: str = os.getenv("NCBI_EMAIL", "user@example.com")
     NCBI_API_KEY: str = os.getenv("NCBI_API_KEY", "")
     BACKEND_PORT: int = int(os.getenv("BACKEND_PORT", "8000"))
     CORS_ORIGINS: list[str] = os.getenv(
