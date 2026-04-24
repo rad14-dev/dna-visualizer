@@ -5,13 +5,38 @@ import * as Tone from 'tone';
 
 const BASES_PER_ROW = 20;
 
-// Mapping nukleotida ke nada C-Mayor Pentatonic berdasarkan hidrogen bonds & RNA root
-const NOTE_MAP = {
-  'G': 'A4', // 3 H-bonds: Tinggi/Terang
-  'C': 'G4', // 3 H-bonds: Resonan
-  'A': 'E4', // 2 H-bonds: Menengah
-  'T': 'D4', // 2 H-bonds: Rendah
-  'U': 'C4'  // RNA root
+// Mapping nukleotida ke nada untuk beberapa jenis tangga nada
+const SCALES = {
+  pentatonic: {
+    name: "C-Major Pentatonic",
+    notes: {
+      'G': 'A4', // La
+      'C': 'G4', // Sol
+      'A': 'E4', // Mi
+      'T': 'D4', // Re
+      'U': 'C4'  // Do
+    }
+  },
+  pelog: {
+    name: "Pelog (Javanese)",
+    notes: {
+      'G': 'A#4', // Pelog intervals (approx)
+      'C': 'G4', 
+      'A': 'E4', 
+      'T': 'D#4', 
+      'U': 'C4'
+    }
+  },
+  slendro: {
+    name: "Slendro (Javanese)",
+    notes: {
+      'G': 'A4', // Slendro intervals (approx)
+      'C': 'G4', 
+      'A': 'F4', 
+      'T': 'D4', 
+      'U': 'C4'
+    }
+  }
 };
 
 /**
@@ -35,6 +60,7 @@ export default function SequenceViewer({
   // Audio state
   const [isPlaying, setIsPlaying] = useState(false);
   const [bpm, setBpm] = useState(120);
+  const [scale, setScale] = useState('pentatonic');
   const [playingIndex, setPlayingIndex] = useState(-1);
   const synthRef = useRef(null);
   const sequenceRef = useRef(null);
@@ -90,10 +116,11 @@ export default function SequenceViewer({
 
     await initAudio();
     
-    // Create sequence of notes
+    // Create sequence of notes based on selected scale
+    const activeScaleNotes = SCALES[scale].notes;
     const notes = sequence.split('').map((base, i) => ({
       time: i, 
-      note: NOTE_MAP[base] || 'C4', 
+      note: activeScaleNotes[base] || 'C4', 
       idx: i 
     }));
 
@@ -181,7 +208,7 @@ export default function SequenceViewer({
         marginBottom: '1rem',
         display: 'flex',
         alignItems: 'center',
-        gap: '1rem',
+        gap: '1.5rem',
         flexWrap: 'wrap'
       }}>
         <button 
@@ -190,7 +217,7 @@ export default function SequenceViewer({
             background: isPlaying ? 'var(--color-error)' : 'var(--accent)',
             color: 'white',
             border: 'none',
-            padding: '4px 12px',
+            padding: '6px 16px',
             borderRadius: '4px',
             cursor: 'pointer',
             fontWeight: 'bold',
@@ -218,8 +245,37 @@ export default function SequenceViewer({
           />
         </div>
 
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+          <label htmlFor="scale-select">Scale:</label>
+          <select
+            id="scale-select"
+            value={scale}
+            onChange={(e) => {
+              setScale(e.target.value);
+              // Stop playing if scale changes to re-initialize sequence with new notes
+              if (isPlaying) {
+                togglePlay();
+              }
+            }}
+            style={{
+              padding: '4px 8px',
+              borderRadius: '4px',
+              background: 'var(--bg-primary)',
+              color: 'var(--text-primary)',
+              border: '1px solid var(--border-subtle)',
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              outline: 'none'
+            }}
+          >
+            {Object.entries(SCALES).map(([key, data]) => (
+              <option key={key} value={key}>{data.name}</option>
+            ))}
+          </select>
+        </div>
+
         <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', marginLeft: 'auto' }}>
-          Scale: C-Major Pentatonic (A: Mi, T/U: Re/Do, G: La, C: Sol) | Instrumen: Xylophone
+          Instrumen: Xylophone (FM Synth)
         </div>
       </div>
 

@@ -12,8 +12,11 @@
   "dependencies": {
     "@tailwindcss/postcss": "^4.2.4",
     "3dmol": "^2.4.2",
+    "framer-motion": "^12.4.7",
+    "plotly.js-dist-min": "^3.0.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
+    "react-plotly.js": "^2.6.0",
     "recharts": "^3.8.1",
     "tone": "^14.7.77"
   },

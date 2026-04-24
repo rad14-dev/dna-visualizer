@@ -5,6 +5,7 @@ import StepIndicator from './components/StepIndicator';
 import SequenceViewer from './components/SequenceViewer';
 import ProteinViewer from './components/ProteinViewer';
 import ProteinQuality from './components/ProteinQuality';
+import GOSunburst from './components/GOSunburst';
 import VirtualGel from './components/VirtualGel';
 import CodonTable from './components/CodonTable';
 import SequenceStats from './components/SequenceStats';
@@ -64,6 +65,16 @@ export default function App() {
       .then((d) => setCodonTableData(d.codons))
       .catch(() => {});
   }, []);
+
+  // Debugging log for go_terms
+  useEffect(() => {
+    if (data && data.go_terms) {
+      console.log("DEBUG (Frontend): go_terms diterima:", data.go_terms);
+    } else if (data) {
+      console.log("DEBUG (Frontend): data diterima, tapi go_terms kosong atau tidak ada.");
+    }
+  }, [data]);
+
 
   return (
     <div className="app">
@@ -241,11 +252,18 @@ export default function App() {
               functionalSignals={data.functional_signals}
             />
 
+            {/* Gene Ontology Sunburst */}
+            {data.go_terms && data.go_terms.length > 0 && (
+              <GOSunburst goTerms={data.go_terms} />
+            )}
+
             {/* Protein Quality Analysis */}
-            <ProteinQuality
-              orfs={data.orfs}
-              proteinQuality={data.protein_quality}
-            />
+            {data.protein_quality && (
+              <ProteinQuality
+                orfs={data.orfs}
+                proteinQuality={data.protein_quality}
+              />
+            )}
 
             {/* Codon Table */}
             <CodonTable

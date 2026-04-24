@@ -17,10 +17,11 @@ from models.schemas import (
     FunctionalSignal,
     RestrictionAnalysis,
     RestrictionSite,
+    GOTerm,
 )
 from services.ncbi_fetcher import fetch_sequence
 from services.bio_logic import process_sequence, get_full_codon_table
-from services.uniprot_api import fetch_uniprot_features, fallback_signal_detection
+from services.uniprot_api import fetch_uniprot_features, fallback_signal_detection, fetch_uniprot_go_terms
 
 router = APIRouter(prefix="/api", tags=["sequence"])
 
@@ -58,6 +59,9 @@ async def process_accession(request: SequenceRequest):
 
         for orf in result["orfs"]:
             orf["signals"] = []
+            
+        # Step 3.5: Fetch GO Terms
+        go_terms = await fetch_uniprot_go_terms(request.accession_id)
 
         # Step 4: Build response
         return SequenceResponse(
@@ -81,7 +85,8 @@ async def process_accession(request: SequenceRequest):
             restriction_analysis=RestrictionAnalysis(
                 sites=[RestrictionSite(**site) for site in result["restriction_analysis"]["sites"]],
                 fragments=result["restriction_analysis"]["fragments"]
-            ) if result.get("restriction_analysis") else None
+            ) if result.get("restriction_analysis") else None,
+            go_terms=[GOTerm(**g) for g in go_terms],
         )
 
     except ValueError as e:
