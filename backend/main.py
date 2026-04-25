@@ -6,7 +6,10 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.routes import sequence
+try:
+    from backend.routes import sequence
+except ImportError:
+    from routes import sequence
 
 app = FastAPI(title="DNA Visualizer API")
 

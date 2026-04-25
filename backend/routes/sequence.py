@@ -2,9 +2,9 @@
 Sequence route handler — API endpoints for DNA/RNA/Protein processing.
 """
 
+import asyncio
 from fastapi import APIRouter, HTTPException
-
-from backend.models.schemas import (
+from ..models.schemas import (
     SequenceRequest,
     SequenceResponse,
     ErrorResponse,
@@ -19,9 +19,9 @@ from backend.models.schemas import (
     RestrictionSite,
     GOTerm,
 )
-from backend.services.ncbi_fetcher import fetch_sequence
-from backend.services.bio_logic import process_sequence, get_full_codon_table
-from backend.services.uniprot_api import fetch_uniprot_features, fallback_signal_detection, fetch_uniprot_go_terms
+from ..services.ncbi_fetcher import fetch_sequence
+from ..services.bio_logic import process_sequence, get_full_codon_table
+from ..services.uniprot_api import fetch_uniprot_features, fallback_signal_detection, fetch_uniprot_go_terms
 
 router = APIRouter(prefix="/api", tags=["sequence"])
 
@@ -47,21 +47,19 @@ async def process_accession(request: SequenceRequest):
     DNA → RNA (transcription) → Protein (translation).
     """
     try:
-        # Step 1: Fetch from NCBI
-        record = fetch_sequence(request.accession_id, email=request.email)
+        # Step 1 & 3.5: Fetch from NCBI and UniProt in parallel to save time (avoid Vercel timeout)
+        record_task = asyncio.to_thread(fetch_sequence, request.accession_id, email=request.email)
+        go_terms_task = fetch_uniprot_go_terms(request.accession_id)
+        
+        record, go_terms = await asyncio.gather(record_task, go_terms_task)
 
         # Step 2: Process (transcribe + translate)
         result = process_sequence(str(record.seq))
         
-        # Step 3: Fetch functional signals from UniProt
-        # Fitur ini ditarik sementara
+        # Step 3: Functional signals (fitur ini ditarik sementara)
         signals = []
-
         for orf in result["orfs"]:
             orf["signals"] = []
-            
-        # Step 3.5: Fetch GO Terms
-        go_terms = await fetch_uniprot_go_terms(request.accession_id)
 
         # Step 4: Build response
         return SequenceResponse(
