@@ -1,6 +1,12 @@
+import os
+import sys
+
+# Ensure the parent directory is in sys.path so 'backend' package is findable
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.routes import sequence # Mengubah import statement
+from backend.routes import sequence
 
 app = FastAPI(title="DNA Visualizer API")
 

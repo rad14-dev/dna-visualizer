@@ -4,7 +4,7 @@ Sequence route handler — API endpoints for DNA/RNA/Protein processing.
 
 from fastapi import APIRouter, HTTPException
 
-from models.schemas import (
+from backend.models.schemas import (
     SequenceRequest,
     SequenceResponse,
     ErrorResponse,
@@ -19,9 +19,9 @@ from models.schemas import (
     RestrictionSite,
     GOTerm,
 )
-from services.ncbi_fetcher import fetch_sequence
-from services.bio_logic import process_sequence, get_full_codon_table
-from services.uniprot_api import fetch_uniprot_features, fallback_signal_detection, fetch_uniprot_go_terms
+from backend.services.ncbi_fetcher import fetch_sequence
+from backend.services.bio_logic import process_sequence, get_full_codon_table
+from backend.services.uniprot_api import fetch_uniprot_features, fallback_signal_detection, fetch_uniprot_go_terms
 
 router = APIRouter(prefix="/api", tags=["sequence"])
 
@@ -94,6 +94,9 @@ async def process_accession(request: SequenceRequest):
     except ConnectionError as e:
         raise HTTPException(status_code=504, detail=str(e))
     except Exception as e:
+        import traceback
+        print(f"ERROR: {str(e)}")
+        traceback.print_exc()
         raise HTTPException(
             status_code=500,
             detail=f"Error memproses sekuens: {str(e)}",

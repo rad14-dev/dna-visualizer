@@ -11,7 +11,7 @@ from io import StringIO
 from Bio import Entrez, SeqIO
 from Bio.SeqRecord import SeqRecord
 
-from config import settings
+from backend.config import settings
 
 
 # Configure Entrez with credentials (default fallback)
