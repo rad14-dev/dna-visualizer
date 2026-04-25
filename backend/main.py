@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routes import sequence
+from backend.routes import sequence # Mengubah import statement
 
 app = FastAPI(title="DNA Visualizer API")
 
