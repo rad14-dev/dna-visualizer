@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import '../styles/InputForm.css';
 
-const EXAMPLE_IDS = ['NM_000558', 'NM_001301717', 'NM_005228'];
+const EXAMPLE_IDS = ['NM_000558', 'NC_000001.11', 'X00001', 'AY123456']; // Contoh Accession ID yang lebih beragam
 
 /**
  * InputForm — Accession Number & Email input with validation, loading state, and hint chips.
@@ -22,8 +22,8 @@ export default function InputForm({ onSubmit, loading, error, onDismissError }) 
 
   const validateAccession = (v) => {
     if (!v.trim()) return false;
-    // Basic NCBI accession pattern
-    return /^[A-Za-z]{1,3}_?\d{3,12}(\.\d+)?$/.test(v.trim());
+    // Basic NCBI nucleotide accession pattern (flexible for NM_, NC_, X_, AY_, etc.)
+    return /^[A-Za-z]{1,6}_?\d{1,12}(\.\d+)?$/.test(v.trim());
   };
 
   const validateEmail = (e) => {
@@ -87,7 +87,7 @@ export default function InputForm({ onSubmit, loading, error, onDismissError }) 
             {/* Accession Input Field */}
             <div>
               <label className="input-label" htmlFor="accession-input">
-                NCBI Accession Number
+                NCBI Accession Number (Nucleotide)
               </label>
 
               <div className="input-wrapper" style={{ marginBottom: 0 }}>
@@ -95,7 +95,7 @@ export default function InputForm({ onSubmit, loading, error, onDismissError }) 
                   id="accession-input"
                   type="text"
                   className={`input-field ${hasError ? 'error' : ''}`}
-                  placeholder="e.g. NM_000558"
+                  placeholder="e.g. NM_000558, NC_000001, X00001"
                   value={accession}
                   onChange={(e) => {
                     setAccession(e.target.value);
@@ -127,7 +127,7 @@ export default function InputForm({ onSubmit, loading, error, onDismissError }) 
 
               <div className="input-hints" style={{ marginTop: '0.5rem' }}>
                 <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginRight: '4px' }}>
-                  Contoh:
+                  Contoh Nucleotide Accession:
                 </span>
                 {EXAMPLE_IDS.map((id) => (
                   <button
@@ -151,7 +151,7 @@ export default function InputForm({ onSubmit, loading, error, onDismissError }) 
             <span className="error-icon">⚠️</span>
             <span>
               {hasError
-                ? 'Format Accession Number tidak valid. Gunakan format seperti NM_000558.'
+                ? 'Format Accession Number tidak valid. Gunakan format seperti NM_000558, NC_000001, X00001.'
                 : error}
             </span>
             <button
