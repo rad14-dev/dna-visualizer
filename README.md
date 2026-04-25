@@ -1,10 +1,10 @@
 # DNA-Visualizer 🧬
 ### DNA → RNA → Protein · Interactive Visual Converter
 
-**Bio-Visualizer** adalah platform web interaktif yang dirancang untuk menjembatani data genomik mentah dari NCBI dengan visualisasi yang indah dan informatif. Aplikasi ini memudahkan siapapun untuk melihat proses **Central Dogma Biologi Molekuler** (Transkripsi & Translasi) secara *real-time* dengan skema warna yang menarik.
+**DNA-Visualizer** adalah platform web interaktif yang dirancang untuk menjembatani data genomik mentah dari NCBI dengan visualisasi yang indah dan informatif. Aplikasi ini memudahkan siapapun untuk melihat proses **Central Dogma Biologi Molekuler** (Transkripsi & Translasi) secara *real-time* dengan skema warna yang menarik dan analisis bioinformatika tingkat lanjut.
 
-> [!TIP]
-> **🚀 Kabar Gembira!** Kami akan segera merilis **Versi Web** agar Anda dapat menggunakan aplikasi ini langsung dari browser tanpa perlu instalasi lokal.
+> [!IMPORTANT]
+> **🚀 Versi Web Tersedia!** Aplikasi ini sekarang telah dioptimalkan untuk hosting di **Vercel** dengan fitur parallel fetching untuk performa maksimal.
 
 ---
 
@@ -24,14 +24,15 @@ cd dna-visualizer
 ## ✨ Fitur Utama
 
 - **NCBI Real-Time Integration**: Fetch data sekuens DNA asli dari database NCBI hanya dengan memasukkan *Accession Number* (contoh: `NM_000558`, `NM_007294`).
-- **Composition Analysis (NEW 📊)**: Analisis statistik instan menggunakan grafik pie interaktif untuk:
-  - Persentase basa DNA (A, T, G, C).
-  - Persentase basa RNA (A, U, G, C).
-  - Distribusi sifat kimia Asam Amino (Nonpolar, Polar, Positif, Negatif, dll).
-- **Interactive Sequence Viewer**: Visualisasi grid nukleotida dan asam amino yang responsif dengan efek *cascading entrance*.
-- **Codon Mapping Logic**: Fitur hover cerdas yang menghubungkan unit protein kembali ke kodon RNA asalnya.
-- **Biochemical Metadata**: Popup informasi detail untuk setiap komponen sekuens saat di-hover.
-- **Modern Tech Stack**: Dibangun dengan **FastAPI** yang cepat dan **React** yang dinamis.
+- **Parallel API Processing (NEW ⚡)**: Mengambil data dari NCBI dan UniProt secara bersamaan untuk respon super cepat (di bawah 10 detik).
+- **ORF Detection (NEW 🔬)**: Secara otomatis mendeteksi *Open Reading Frames* (M → *) dalam sekuens protein.
+- **Protein Quality & Allergen Analysis (NEW 🛡️)**: 
+  - Analisis asam amino pembatas berdasarkan standar FAO/WHO.
+  - Deteksi motif alergen (Epitope matching) seperti pada kacang, gluten, dan susu.
+- **Virtual Gel Electrophoresis (NEW 🧬)**: Simulasi pemotongan enzim restriksi (EcoRI, BamHI, HindIII, dll) dan visualisasi fragmen pada gel agarose.
+- **Gene Ontology Sunburst (NEW 📊)**: Visualisasi kategori fungsional protein (Cellular Component, Molecular Function, Biological Process) menggunakan data dari UniProt.
+- **Interactive Sequence Viewer**: Visualisasi nukleotida dan asam amino yang responsif dengan fitur hover untuk pemetaan kodon.
+- **Composition Analysis**: Statistik instan untuk persentase basa (DNA/RNA) dan sifat kimia asam amino.
 
 ---
 
@@ -39,32 +40,33 @@ cd dna-visualizer
 
 ### Backend (Python)
 - **FastAPI**: Web framework berkinerja tinggi.
-- **Biopython**: Library standar industri untuk komputasi biologi.
+- **Biopython**: Library standar industri untuk komputasi biologi (NCBI Fetch, Restriction Analysis).
+- **AsyncIO**: Eksekusi parallel untuk optimasi latensi API.
 - **Pydantic**: Validasi data dan skema API.
 
 ### Frontend (React)
 - **React 18**: Library UI deklaratif.
-- **Recharts**: Library visualisasi data untuk grafik pie.
-- **Vanilla CSS**: Desain kustom premium dengan nuansa *Dark Mode*.
+- **Recharts & Plotly**: Library visualisasi data untuk grafik pie dan sunburst chart.
+- **Vanilla CSS**: Desain kustom premium dengan nuansa *Dark Mode* dan *Glassmorphism*.
 
 ---
 
 ## 🚀 Cara Menjalankan Secara Lokal
 
 ### 1. Persiapan Backend
-Buka terminal baru di folder `backend`:
+Buka terminal baru di direktori root proyek:
 ```powershell
 cd backend
 python -m venv venv
 .\venv\Scripts\activate
 pip install -r requirements.txt
 ```
-Pastikan file `.env` sudah terisi:
+Pastikan file `.env` sudah terisi di dalam folder `backend`:
 `NCBI_EMAIL=email_anda@example.com`
 
-Jalankan server:
+Jalankan server dari direktori root:
 ```powershell
-uvicorn main:app --reload --port 8001
+uvicorn backend.main:app --reload --port 8000
 ```
 
 ### 2. Persiapan Frontend
@@ -74,16 +76,16 @@ cd frontend
 npm install
 npm run dev
 ```
-Akses aplikasi melalui `http://localhost:5173`.
+Akses aplikasi melalui `http://localhost:5173`. Backend akan secara otomatis di-proxy melalui konfigurasi Vite.
 
 ---
 
 ## 👨‍🔬 Siapa yang Dapat Memanfaatkan Aplikasi Ini?
 
-1. **Mahasiswa Biologi/Bioinformatika**: Memahami pemetaan kodon dan sifat asam amino secara visual tanpa harus menghafal tabel manual.
-2. **Dosen & Pengajar**: Media pembelajaran interaktif untuk menunjukkan proses transkripsi dan translasi di kelas.
-3. **Peneliti Biologi**: Alat pengecekan cepat (*quick check*) untuk profil protein dan komposisi basa dari sekuens genetik.
-4. **Bioinformatics Enthusiasts**: Contoh implementasi nyata integrasi API NCBI dengan web modern.
+1. **Mahasiswa Biologi/Bioinformatika**: Memahami pemetaan kodon dan sifat asam amino secara visual.
+2. **Dosen & Pengajar**: Media pembelajaran interaktif untuk menunjukkan proses biologi molekuler dan analisis restriksi.
+3. **Peneliti Biologi**: Alat pengecekan cepat (*quick check*) untuk deteksi ORF, alergenitas, dan pola pemotongan enzim.
+4. **Bioinformatics Enthusiasts**: Contoh implementasi integrasi API NCBI & UniProt dengan web modern.
 
 ---
 
