@@ -4,24 +4,45 @@ Sequence route handler — API endpoints for DNA/RNA/Protein processing.
 
 import asyncio
 from fastapi import APIRouter, HTTPException
-from ..models.schemas import (
-    SequenceRequest,
-    SequenceResponse,
-    ErrorResponse,
-    HealthResponse,
-    NucleotideCounts,
-    CodonInfo,
-    ORFInfo,
-    QualityInfo,
-    AllergenMatch,
-    FunctionalSignal,
-    RestrictionAnalysis,
-    RestrictionSite,
-    GOTerm,
-)
-from ..services.ncbi_fetcher import fetch_sequence
-from ..services.bio_logic import process_sequence, get_full_codon_table
-from ..services.uniprot_api import fetch_uniprot_features, fallback_signal_detection, fetch_uniprot_go_terms
+
+try:
+    from backend.models.schemas import (
+        SequenceRequest,
+        SequenceResponse,
+        ErrorResponse,
+        HealthResponse,
+        NucleotideCounts,
+        CodonInfo,
+        ORFInfo,
+        QualityInfo,
+        AllergenMatch,
+        FunctionalSignal,
+        RestrictionAnalysis,
+        RestrictionSite,
+        GOTerm,
+    )
+    from backend.services.ncbi_fetcher import fetch_sequence
+    from backend.services.bio_logic import process_sequence, get_full_codon_table
+    from backend.services.uniprot_api import fetch_uniprot_features, fallback_signal_detection, fetch_uniprot_go_terms
+except ModuleNotFoundError:
+    from models.schemas import (
+        SequenceRequest,
+        SequenceResponse,
+        ErrorResponse,
+        HealthResponse,
+        NucleotideCounts,
+        CodonInfo,
+        ORFInfo,
+        QualityInfo,
+        AllergenMatch,
+        FunctionalSignal,
+        RestrictionAnalysis,
+        RestrictionSite,
+        GOTerm,
+    )
+    from services.ncbi_fetcher import fetch_sequence
+    from services.bio_logic import process_sequence, get_full_codon_table
+    from services.uniprot_api import fetch_uniprot_features, fallback_signal_detection, fetch_uniprot_go_terms
 
 router = APIRouter(prefix="/api", tags=["sequence"])
 
