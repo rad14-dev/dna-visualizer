@@ -19,11 +19,10 @@ try:
         FunctionalSignal,
         RestrictionAnalysis,
         RestrictionSite,
-        GOTerm,
     )
     from backend.services.ncbi_fetcher import fetch_sequence
     from backend.services.bio_logic import process_sequence, get_full_codon_table
-    from backend.services.uniprot_api import fetch_uniprot_features, fallback_signal_detection, fetch_uniprot_go_terms
+    from backend.services.uniprot_api import fetch_uniprot_features, fallback_signal_detection
 except ModuleNotFoundError:
     from models.schemas import (
         SequenceRequest,
@@ -38,11 +37,10 @@ except ModuleNotFoundError:
         FunctionalSignal,
         RestrictionAnalysis,
         RestrictionSite,
-        GOTerm,
     )
     from services.ncbi_fetcher import fetch_sequence
     from services.bio_logic import process_sequence, get_full_codon_table
-    from services.uniprot_api import fetch_uniprot_features, fallback_signal_detection, fetch_uniprot_go_terms
+    from services.uniprot_api import fetch_uniprot_features, fallback_signal_detection
 
 router = APIRouter(prefix="/api", tags=["sequence"])
 
@@ -68,11 +66,8 @@ async def process_accession(request: SequenceRequest):
     DNA → RNA (transcription) → Protein (translation).
     """
     try:
-        # Step 1 & 3.5: Fetch from NCBI and UniProt in parallel to save time (avoid Vercel timeout)
-        record_task = asyncio.to_thread(fetch_sequence, request.accession_id, email=request.email)
-        go_terms_task = fetch_uniprot_go_terms(request.accession_id)
-        
-        record, go_terms = await asyncio.gather(record_task, go_terms_task)
+        # Step 1: Fetch from NCBI
+        record = await asyncio.to_thread(fetch_sequence, request.accession_id, email=request.email)
 
         # Step 2: Process (transcribe + translate)
         result = process_sequence(str(record.seq))
@@ -105,7 +100,6 @@ async def process_accession(request: SequenceRequest):
                 sites=[RestrictionSite(**site) for site in result["restriction_analysis"]["sites"]],
                 fragments=result["restriction_analysis"]["fragments"]
             ) if result.get("restriction_analysis") else None,
-            go_terms=[GOTerm(**g) for g in go_terms],
         )
 
     except ValueError as e:

@@ -93,13 +93,6 @@ class RestrictionAnalysis(BaseModel):
     fragments: list[int] = []
 
 
-class GOTerm(BaseModel):
-    """Information about a Gene Ontology term."""
-    id: str
-    category: str
-    description: str
-
-
 class SequenceResponse(BaseModel):
     """Full response with DNA, RNA, and protein sequences."""
 
@@ -118,7 +111,6 @@ class SequenceResponse(BaseModel):
     protein_quality: dict[str, QualityInfo] = {}
     functional_signals: list[FunctionalSignal] = []
     restriction_analysis: RestrictionAnalysis | None = None
-    go_terms: list[GOTerm] = []
 
 
 class ErrorResponse(BaseModel):
