@@ -251,6 +251,13 @@ export default function ProteinViewer({
         <div className="fragments-header" style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span className="icon">🧬</span>
           <span className="fragments-title" style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>3D Structure</span>
+          <div className="info-trigger">
+            ⓘ
+            <div className="info-tooltip">
+              <strong>Protein Folding</strong>
+              <p style={{textAlign: 'left', whiteSpace: 'normal'}}>Fungsi sebuah protein sangat bergantung pada bentuk 3D-nya (folding). Visualisasi ini membantu memahami bagaimana rantai linier asam amino melipat menjadi struktur fungsional atau reseptor spesifik.</p>
+            </div>
+          </div>
         </div>
         
         {/* 3. Menampilkan Viewer atau Pesan Kosong */}

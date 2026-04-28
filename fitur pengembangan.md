@@ -1,0 +1,2 @@
+tampilkan ringkasan kenapa setiap bagian penting dan diperlihatkan ketika icon `info` dihover atau diklik misalnya kenapa dipecah-pecah jadi fragmen, atau kenapa ada yang bisa jadi musik, tambahkan konsep folding protein itu penting, sehingga khazanah keilmuannya semakin bertambah bang
+yang di bawah kan ada juga yang main epitope dan protein analyzer, ini juga bisa diberi informasi gunanya apa, karena ini juga terkait masalah reseptor protein kan ya

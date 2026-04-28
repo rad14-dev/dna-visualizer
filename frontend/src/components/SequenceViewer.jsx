@@ -274,8 +274,15 @@ export default function SequenceViewer({
           </select>
         </div>
 
-        <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', marginLeft: 'auto' }}>
+        <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
           Instrumen: Xylophone (FM Synth)
+          <div className="info-trigger" style={{ marginLeft: '8px' }}>
+            ⓘ
+            <div className="info-tooltip" style={{ width: '250px', left: 'auto', right: 0, transform: 'translateY(10px)' }}>
+              <strong>DNA Sonification</strong>
+              <p style={{textAlign: 'left', whiteSpace: 'normal'}}>Mengubah sekuens menjadi nada membantu kita "mendengar" pola berulang atau mutasi yang mungkin terlewat secara visual. Ini adalah metode aksesibilitas dan analisis pola alternatif.</p>
+            </div>
+          </div>
         </div>
       </div>
 

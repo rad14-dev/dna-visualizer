@@ -20,6 +20,14 @@ export default function ProteinQuality({ orfs, proteinQuality }) {
       <div className="section-header" style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-start' }}>
         <span className="icon" style={{ fontSize: '1.5rem' }}>🥩</span>
         <span className="section-title" style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>Protein Quality & Allergen Analysis</span>
+        <div className="info-trigger" style={{ marginLeft: '8px' }}>
+          ⓘ
+          <div className="info-tooltip" style={{ width: '280px' }}>
+            <strong>Analisis Kualitas & Alergen</strong>
+            <p>Menganalisis asam amino esensial dan mendeteksi epitop (bagian protein yang dikenali sistem imun).</p>
+            <small>Sangat penting dalam Food Tech untuk mengetahui kualitas gizi dan potensi alergi, serta studi interaksi reseptor protein.</small>
+          </div>
+        </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>

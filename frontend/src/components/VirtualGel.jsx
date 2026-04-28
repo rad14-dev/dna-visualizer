@@ -131,6 +131,13 @@ export default function VirtualGel({ fragments = [] }) {
       <div className="section-header" style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-start' }}>
         <span className="icon" style={{ fontSize: '1.5rem' }}>🧪</span>
         <span className="section-title" style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>Advanced Virtual Electrophoresis</span>
+        <div className="info-trigger" style={{ marginLeft: '8px' }}>
+          ⓘ
+          <div className="info-tooltip" style={{ width: '300px' }}>
+            <strong>Gel Electrophoresis</strong>
+            <p>Memisahkan DNA menjadi fragmen-fragmen berdasarkan ukurannya. Teknik ini digunakan di lab untuk memverifikasi hasil pemotongan enzim restriksi, PCR, atau rekayasa genetik.</p>
+          </div>
+        </div>
       </div>
 
       <div style={{
